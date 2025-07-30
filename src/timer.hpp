@@ -2,6 +2,9 @@
 
 using namespace std;
 
+#ifndef TIMER_HPP
+#define TIMER_HPP
+
 class Timer
 {
     public:
@@ -26,3 +29,5 @@ class Timer
         bool hasRolledOver = false;
         bool continuousRun = false;
 };
+
+#endif

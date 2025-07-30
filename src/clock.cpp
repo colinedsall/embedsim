@@ -6,7 +6,6 @@ A clock system that uses ticks to simulate a clock for any use case.
 
 int NANOSECOND_SCALAR_VALUE = 1000000000;
 
-
 Clock::Clock() : periodInNanoseconds(0), startPulseValue(false)
 {
     cout << "Warning: Default constructor called. Clock will have no period. \n";
@@ -74,9 +73,9 @@ void Clock::clockThreadLoop()
             timers[i].pollTimer();
 
             // Debug
-            cout << "Timer index: " << i << ". Current cycles: "
-                << timers[i].getCurrentCycles() << " Rollover count: "
-                << timers[i].getRolloverCount() << " \n";
+            // cout << "Timer index: " << i << ". Current cycles: "
+            //     << timers[i].getCurrentCycles() << " Rollover count: "
+            //     << timers[i].getRolloverCount() << " \n";
         }
 
     }
@@ -89,9 +88,12 @@ bool Clock::createCountUpTimer(int timeInMilliseconds, bool outputRollovers)
 {
     Timer timer(timeInMilliseconds, periodInNanoseconds, outputRollovers);
     cout << "Configured a new timer for " << timeInMilliseconds << " ms" 
-        << "which " << (outputRollovers ? "does" : "does not") << "count rollovers.";
+        << " which " << (outputRollovers ? "does" : "does not") << "count rollovers.";
 
     timers.push_back(timer);
+
+    // Return dummy true here
+    return true;
 }
 
 void Clock::startCountUpTimer(int index)

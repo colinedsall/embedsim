@@ -11,10 +11,12 @@ using namespace std;
 using namespace std::this_thread;
 using namespace std::chrono;
 
-
 // A clock system that uses ticks to simulate a clock for any use case.
 
-class Clock 
+#ifndef CLOCK_HPP
+#define CLOCK_HPP
+
+class Clock
 {
     public:
         Clock();
@@ -53,3 +55,5 @@ class Clock
         void clockThreadLoop();
 
 };
+
+#endif
