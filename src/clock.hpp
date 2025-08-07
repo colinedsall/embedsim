@@ -4,6 +4,7 @@
 #include <thread>
 #include <atomic>
 #include <future>
+#include <vector>
 
 #include "timer.hpp"
 

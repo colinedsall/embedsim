@@ -136,6 +136,8 @@ void System::cliInputLoop()
 
 void System::handleUserInput(const std::string& input)
 {
+    std::lock_guard<std::mutex> lock(systemMutex);
+    
     std::istringstream iss(input);
     std::string command;
     iss >> command;
@@ -278,23 +280,33 @@ void System::closeDisplay()
 // Main function
 void System::run()
 {
+    std::cout << "DEBUG: Starting System::run()" << std::endl;
+    
     setupInterruptHandlers();
+    std::cout << "DEBUG: Interrupt handlers setup complete" << std::endl;
     
     // Configure IO module
     IO anIO("SystemIO", true);
     anIO.addButton(Button("aButton"));
     this->configureIO(anIO);
+    std::cout << "DEBUG: IO configuration complete" << std::endl;
     
     // Configure clock module
     clock.createCountUpTimer(1000, true);
     clock.beginTicking(false);
     clock.startCountUpTimer(0);
+    std::cout << "DEBUG: Clock configuration complete" << std::endl;
     
     startCLIThread();
+    std::cout << "DEBUG: CLI thread started" << std::endl;
     
     // Create timer for periodic operations instead of polling loop
     QTimer* systemTimer = new QTimer();
+    std::cout << "DEBUG: QTimer created" << std::endl;
+    
     QObject::connect(systemTimer, &QTimer::timeout, [this]() {
+        std::lock_guard<std::mutex> lock(systemMutex);
+        
         if (clock.isRunning() && !shouldStop.load()) {
             if (clock.getCurrentClockState() && !clockPaused.load()) {
                 this->io.pollButtonsWithStates();
@@ -317,17 +329,25 @@ void System::run()
     
     // Start timer with appropriate interval (adjust as needed)
     systemTimer->start(10); // 10ms interval
+    std::cout << "DEBUG: QTimer started" << std::endl;
     
     std::cout << "System started. Type 'help' for available commands.\n";
     
     // Show display and connect button handler
+    std::cout << "DEBUG: About to show display" << std::endl;
     this->display->showWindow("Embedded System");
+    std::cout << "DEBUG: Display shown" << std::endl;
+    
     this->display->connectButtonClick([this]() {
+        std::lock_guard<std::mutex> lock(systemMutex);
         this->handleCircleButtonClick();
     });
+    std::cout << "DEBUG: Button click connected" << std::endl;
     
     // Enter Qt event loop - this will now handle everything
+    std::cout << "DEBUG: About to enter Qt event loop" << std::endl;
     int result = this->qtApp->exec();
+    std::cout << "DEBUG: Qt event loop exited with result: " << result << std::endl;
     
     std::cout << "System stopped.\n";
     stopCLIThread();

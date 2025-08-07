@@ -7,6 +7,7 @@
 #include <string>
 #include <functional>
 #include <map>
+#include <mutex>
 #include "clock.hpp"
 #include "io.hpp"
 #include "display.hpp"
@@ -56,6 +57,10 @@ private:
     std::map<std::string, std::function<void()>> interruptHandlers;
     std::thread cliThread;
     std::atomic<bool> cliThreadRunning{false};
+    
+    // Thread safety
+    mutable std::mutex systemMutex;
+    std::mutex ioMutex;
     
     void cliInputLoop();
     void handleUserInput(const std::string& input);
