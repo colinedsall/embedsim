@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QMessageBox>
+#include <QThread>
 #include <iostream>
 
 // CircleButton implementation
@@ -181,17 +182,29 @@ void DisplayApp::centerText()
 
 void DisplayApp::showWindow(const QString& text)
 {
+    std::cout << "DEBUG: showWindow started with text: " << text.toStdString() << std::endl;
+    
     displayText = text;
     if (textLabel) {
         textLabel->setText(text);
+        std::cout << "DEBUG: Text label updated" << std::endl;
     }
     
     // Show the window
+    std::cout << "DEBUG: About to call show()" << std::endl;
     show();
+    std::cout << "DEBUG: show() completed" << std::endl;
     
     // Bring to front
+    std::cout << "DEBUG: About to call raise()" << std::endl;
     raise();
+    std::cout << "DEBUG: raise() completed" << std::endl;
+    
+    std::cout << "DEBUG: About to call activateWindow()" << std::endl;
     activateWindow();
+    std::cout << "DEBUG: activateWindow() completed" << std::endl;
+    
+    std::cout << "DEBUG: showWindow completed successfully" << std::endl;
 }
 
 void DisplayApp::connectButtonClick(std::function<void()> handler)

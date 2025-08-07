@@ -325,6 +325,23 @@ void System::run()
     startCLIThread();
     std::cout << "DEBUG: CLI thread started" << std::endl;
     
+    // Show display BEFORE creating timer to ensure Qt is ready
+    std::cout << "DEBUG: About to show display" << std::endl;
+    if (this->display) {
+        this->display->showWindow("Embedded System");
+        std::cout << "DEBUG: Display shown successfully" << std::endl;
+    } else {
+        std::cerr << "ERROR: Display is null!" << std::endl;
+        return;
+    }
+    
+    // Connect button handler
+    this->display->connectButtonClick([this]() {
+        std::lock_guard<std::mutex> lock(systemMutex);
+        this->handleCircleButtonClick();
+    });
+    std::cout << "DEBUG: Button click connected" << std::endl;
+    
     // Create timer for periodic operations instead of polling loop
     QTimer* systemTimer = new QTimer();
     std::cout << "DEBUG: QTimer created" << std::endl;
@@ -357,17 +374,6 @@ void System::run()
     std::cout << "DEBUG: QTimer started" << std::endl;
     
     std::cout << "System started. Type 'help' for available commands.\n";
-    
-    // Show display and connect button handler
-    std::cout << "DEBUG: About to show display" << std::endl;
-    this->display->showWindow("Embedded System");
-    std::cout << "DEBUG: Display shown" << std::endl;
-    
-    this->display->connectButtonClick([this]() {
-        std::lock_guard<std::mutex> lock(systemMutex);
-        this->handleCircleButtonClick();
-    });
-    std::cout << "DEBUG: Button click connected" << std::endl;
     
     // Enter Qt event loop - this will now handle everything
     std::cout << "DEBUG: About to enter Qt event loop" << std::endl;
