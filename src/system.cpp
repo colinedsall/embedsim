@@ -5,13 +5,21 @@
 
 // Constructors
 System::System() : clock(10e4, false) {
+    std::cout << "DEBUG: System constructor started" << std::endl;
+    
     // Create QApplication first
     int argc = 1;
     char* argv[] = {(char*)"embedsim"};
+    std::cout << "DEBUG: About to create QApplication" << std::endl;
     this->qtApp = std::make_unique<QApplication>(argc, argv);
+    std::cout << "DEBUG: QApplication created successfully" << std::endl;
     
     // Then create Display
+    std::cout << "DEBUG: About to initialize display" << std::endl;
     this->initializeDisplay();
+    std::cout << "DEBUG: Display initialized successfully" << std::endl;
+    
+    std::cout << "DEBUG: System constructor completed" << std::endl;
 }
 
 System::~System() {
@@ -238,12 +246,29 @@ void System::handleUserInput(const std::string& input)
 
 void System::initializeDisplay()
 {
-    this->display = std::make_unique<DisplayApp>(400, 400);
+    std::cout << "DEBUG: initializeDisplay started" << std::endl;
     
-    // Connect the circle button click to system handler
-    this->display->connectButtonClick([this]() {
-        this->handleCircleButtonClick();
-    });
+    try {
+        std::cout << "DEBUG: About to create DisplayApp" << std::endl;
+        this->display = std::make_unique<DisplayApp>(400, 400);
+        std::cout << "DEBUG: DisplayApp created successfully" << std::endl;
+        
+        // Connect the circle button click to system handler
+        std::cout << "DEBUG: About to connect button click" << std::endl;
+        this->display->connectButtonClick([this]() {
+            this->handleCircleButtonClick();
+        });
+        std::cout << "DEBUG: Button click connected successfully" << std::endl;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "ERROR: Exception in initializeDisplay: " << e.what() << std::endl;
+        throw;
+    } catch (...) {
+        std::cerr << "ERROR: Unknown exception in initializeDisplay" << std::endl;
+        throw;
+    }
+    
+    std::cout << "DEBUG: initializeDisplay completed successfully" << std::endl;
 }
 
 void System::showText(const QString& text)
