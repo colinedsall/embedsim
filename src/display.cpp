@@ -90,16 +90,25 @@ DisplayApp::DisplayApp(int width, int height) : windowWidth(width), windowHeight
 
 DisplayApp::~DisplayApp()
 {
+    std::cout << "DEBUG: DisplayApp destructor started" << std::endl;
+    
     // Disconnect signals to prevent callbacks after destruction
     if (circleButton) {
         disconnect(circleButton, nullptr, this, nullptr);
+        std::cout << "DEBUG: Circle button signals disconnected" << std::endl;
     }
     
     // Clear external handler to prevent dangling function calls
     externalClickHandler = nullptr;
+    std::cout << "DEBUG: External click handler cleared" << std::endl;
+    
+    // Close the window properly
+    close();
+    std::cout << "DEBUG: Window closed" << std::endl;
     
     // Qt will handle widget cleanup automatically when parent is destroyed
     // No need to manually delete child widgets
+    std::cout << "DEBUG: DisplayApp destructor completed" << std::endl;
 }
 
 void DisplayApp::setupUI()
@@ -131,7 +140,8 @@ void DisplayApp::setupUI()
     textLabel->setAlignment(Qt::AlignCenter);
     textLabel->setStyleSheet("QLabel { background-color: white; color: black; font-size: 16px; }");
     textLabel->setMinimumHeight(50);
-    std::cout << "DEBUG: Text label created" << std::endl;
+    textLabel->setText("Initializing..."); // Set initial text
+    std::cout << "DEBUG: Text label created with initial text" << std::endl;
     
     // Set Arial font
     QFont arialFont("Arial", 16, QFont::Normal);
@@ -167,7 +177,8 @@ void DisplayApp::setupUI()
     
     // Make window visible by default
     setVisible(true);
-    std::cout << "DEBUG: Window set visible" << std::endl;
+    resize(windowWidth, windowHeight);
+    std::cout << "DEBUG: Window set visible and sized to " << windowWidth << "x" << windowHeight << std::endl;
     
     std::cout << "DEBUG: setupUI completed successfully" << std::endl;
 }
@@ -191,7 +202,14 @@ void DisplayApp::showWindow(const QString& text)
     displayText = text;
     if (textLabel) {
         textLabel->setText(text);
-        std::cout << "DEBUG: Text label updated" << std::endl;
+        std::cout << "DEBUG: Text label updated with: " << text.toStdString() << std::endl;
+        
+        // Force update the label
+        textLabel->update();
+        textLabel->repaint();
+        std::cout << "DEBUG: Text label forced update" << std::endl;
+    } else {
+        std::cerr << "ERROR: textLabel is null!" << std::endl;
     }
     
     // Just update the text, window is already visible
@@ -207,6 +225,11 @@ void DisplayApp::showWindow(const QString& text)
         activateWindow();
         std::cout << "DEBUG: activateWindow() completed" << std::endl;
     }
+    
+    // Force a repaint of the entire window
+    update();
+    repaint();
+    std::cout << "DEBUG: Window repaint forced" << std::endl;
     
     std::cout << "DEBUG: showWindow completed successfully" << std::endl;
 }

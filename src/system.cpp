@@ -23,20 +23,32 @@ System::System() : clock(10e4, false) {
 }
 
 System::~System() {
+    std::cout << "DEBUG: System destructor started" << std::endl;
+    
+    // Stop CLI thread first
     stopCLIThread();
+    std::cout << "DEBUG: CLI thread stopped" << std::endl;
     
     // Clean up Qt resources
     if (display) {
+        std::cout << "DEBUG: Closing display" << std::endl;
         display->close();
         display.reset();
+        std::cout << "DEBUG: Display closed and reset" << std::endl;
     }
     
     if (qtApp) {
+        std::cout << "DEBUG: Quitting Qt application" << std::endl;
         qtApp->quit();
         qtApp.reset();
+        std::cout << "DEBUG: Qt application quit and reset" << std::endl;
     }
     
+    // Clear interrupt handlers to prevent dangling references
     interruptHandlers.clear();
+    std::cout << "DEBUG: Interrupt handlers cleared" << std::endl;
+    
+    std::cout << "DEBUG: System destructor completed" << std::endl;
 }   
 
 void System::configureIO(IO io)
@@ -227,6 +239,7 @@ void System::handleUserInput(const std::string& input)
         std::cout << "Exiting program...\n";
         shouldStop = true;
         
+        // Clean up resources before exit
         if (display) {
             display->close();
         }
@@ -237,7 +250,9 @@ void System::handleUserInput(const std::string& input)
             qtApp->quit();
         }
         
-        exit(0);
+        // Force cleanup
+        std::cout << "Cleanup complete. Exiting.\n";
+        std::exit(0);
     }
     else {
         std::cout << "Unknown command. Type 'help' for available commands.\n";
@@ -371,7 +386,7 @@ void System::run()
     
     std::cout << "System started. Type 'help' for available commands.\n";
     
-    // Use a timer to show the display after the event loop starts
+    // Show the display immediately after event loop starts
     QTimer* showTimer = new QTimer();
     showTimer->setSingleShot(true);
     QObject::connect(showTimer, &QTimer::timeout, [this]() {
@@ -383,12 +398,28 @@ void System::run()
             std::cerr << "ERROR: Display is null!" << std::endl;
         }
     });
-    showTimer->start(100); // Show after 100ms
+    showTimer->start(100); // Back to 100ms, but we'll also show it immediately
+    
+    // Also show the window immediately
+    if (this->display) {
+        std::cout << "DEBUG: Showing display immediately" << std::endl;
+        this->display->showWindow("Embedded System");
+    }
     
     // Enter Qt event loop - this will now handle everything
     std::cout << "DEBUG: About to enter Qt event loop" << std::endl;
     int result = this->qtApp->exec();
     std::cout << "DEBUG: Qt event loop exited with result: " << result << std::endl;
+    
+    // Clean up timers
+    if (systemTimer) {
+        systemTimer->stop();
+        systemTimer->deleteLater();
+    }
+    if (showTimer) {
+        showTimer->stop();
+        showTimer->deleteLater();
+    }
     
     std::cout << "System stopped.\n";
     stopCLIThread();

@@ -6,6 +6,9 @@
 #include "io.hpp"
 #include "system.hpp"
 
+// Global system pointer for cleanup
+System* g_system = nullptr;
+
 void segfault_handler(int sig) {
     void *array[10];
     size_t size;
@@ -19,13 +22,28 @@ void segfault_handler(int sig) {
     exit(1);
 }
 
+void cleanup_handler(int sig) {
+    std::cout << "\nReceived signal " << sig << ", cleaning up..." << std::endl;
+    
+    if (g_system) {
+        // Clean up system resources
+        g_system->~System();
+    }
+    
+    std::cout << "Cleanup complete. Exiting." << std::endl;
+    exit(0);
+}
+
 int main() {
-    // Set up signal handler for segmentation faults
+    // Set up signal handlers for segmentation faults and cleanup
     signal(SIGSEGV, segfault_handler);
+    signal(SIGINT, cleanup_handler);   // Ctrl+C
+    signal(SIGTERM, cleanup_handler);  // Termination signal
     
     std::cout << "DEBUG: Starting main()" << std::endl;
     
     System system;
+    g_system = &system;  // Store for cleanup
     std::cout << "DEBUG: System object created" << std::endl;
     
     system.run();
