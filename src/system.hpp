@@ -47,7 +47,7 @@ public:
 private:
     Clock clock;
     IO io;
-    std::unique_ptr<Display> display;
+    std::unique_ptr<DisplayApp> display;
     std::unique_ptr<QApplication> qtApp;
     
     // Interrupt system

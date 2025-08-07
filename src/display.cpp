@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QMessageBox>
+#include <iostream>
 
 // CircleButton implementation
 CircleButton::CircleButton(const QString& text, QWidget* parent) 
@@ -70,22 +71,31 @@ void CircleButton::mouseReleaseEvent(QMouseEvent* event)
     }
 }
 
-Display::Display() : windowWidth(400), windowHeight(400)
+DisplayApp::DisplayApp() : windowWidth(400), windowHeight(400)
 {
     setupUI();
 }
 
-Display::Display(int width, int height) : windowWidth(width), windowHeight(height)
+DisplayApp::DisplayApp(int width, int height) : windowWidth(width), windowHeight(height)
 {
     setupUI();
 }
 
-Display::~Display()
+DisplayApp::~DisplayApp()
 {
-    // Qt will handle cleanup automatically
+    // Disconnect signals to prevent callbacks after destruction
+    if (circleButton) {
+        disconnect(circleButton, nullptr, this, nullptr);
+    }
+    
+    // Clear external handler to prevent dangling function calls
+    externalClickHandler = nullptr;
+    
+    // Qt will handle widget cleanup automatically when parent is destroyed
+    // No need to manually delete child widgets
 }
 
-void Display::setupUI()
+void DisplayApp::setupUI()
 {
     // Set window properties
     setWindowTitle("Embedded System Display");
@@ -128,13 +138,15 @@ void Display::setupUI()
     layout->addStretch(); // Add stretch to push content to top
     
     // Connect button signal
-    connect(circleButton, &CircleButton::clicked, this, &Display::onCircleButtonClicked);
+    if (circleButton) {
+        connect(circleButton, &CircleButton::clicked, this, &DisplayApp::onCircleButtonClicked);
+    }
     
     // Center the window on screen
     centerText();
 }
 
-void Display::centerText()
+void DisplayApp::centerText()
 {
     // Center the window on the screen
     QScreen* screen = QApplication::primaryScreen();
@@ -146,10 +158,12 @@ void Display::centerText()
     }
 }
 
-void Display::showWindow(const QString& text)
+void DisplayApp::showWindow(const QString& text)
 {
     displayText = text;
-    textLabel->setText(text);
+    if (textLabel) {
+        textLabel->setText(text);
+    }
     
     // Show the window
     show();
@@ -159,19 +173,27 @@ void Display::showWindow(const QString& text)
     activateWindow();
 }
 
-void Display::connectButtonClick(std::function<void()> handler)
+void DisplayApp::connectButtonClick(std::function<void()> handler)
 {
     externalClickHandler = handler;
 }
 
-void Display::onCircleButtonClicked()
+void DisplayApp::onCircleButtonClicked()
 {
     // Call external handler if connected
     if (externalClickHandler) {
-        externalClickHandler();
+        try {
+            externalClickHandler();
+        } catch (...) {
+            // Prevent crashes from external handler exceptions
+            std::cerr << "Error in external click handler\n";
+        }
     }
     
     // Default behavior
+    if (textLabel) {
+        textLabel->setText("Button was clicked!");
+    }
+    
     QMessageBox::information(this, "Button Clicked", "Circle button was clicked!");
-    textLabel->setText("Button was clicked!");
 } 

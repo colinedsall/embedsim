@@ -16,6 +16,19 @@ System::System() : clock(10e4, false) {
 
 System::~System() {
     stopCLIThread();
+    
+    // Clean up Qt resources
+    if (display) {
+        display->close();
+        display.reset();
+    }
+    
+    if (qtApp) {
+        qtApp->quit();
+        qtApp.reset();
+    }
+    
+    interruptHandlers.clear();
 }   
 
 void System::configureIO(IO io)
@@ -199,6 +212,22 @@ void System::handleUserInput(const std::string& input)
         std::cout << "  status - Show system status\n";
         std::cout << "  help - Show this help\n";
     }
+    else if (command == "exit") {
+        std::cout << "Exiting program...\n";
+        shouldStop = true;
+        
+        if (display) {
+            display->close();
+        }
+        
+        stopCLIThread();
+        
+        if (qtApp) {
+            qtApp->quit();
+        }
+        
+        exit(0);
+    }
     else {
         std::cout << "Unknown command. Type 'help' for available commands.\n";
     }
@@ -206,7 +235,7 @@ void System::handleUserInput(const std::string& input)
 
 void System::initializeDisplay()
 {
-    this->display = std::make_unique<Display>(400, 400);
+    this->display = std::make_unique<DisplayApp>(400, 400);
     
     // Connect the circle button click to system handler
     this->display->connectButtonClick([this]() {
@@ -261,6 +290,8 @@ void System::run()
     std::cout << "System started. Type 'help' for available commands.\n";
 
     bool firstPress = false;
+    this->display->showWindow("Embedded System");
+    this->qtApp->exec();
 
     // Polling loop - synchronized with clock
     while (clock.isRunning() && !shouldStop.load()) {
@@ -282,9 +313,9 @@ void System::run()
         if (this->io.isButtonPressed("aButton") && firstPress == false) {
             std::cout << "Button recognized as pressed\n";
             // this->handleCircleButtonClick();
-            this->display->showWindow("Button pressed");
+            
             firstPress = true;
-            this->qtApp->exec();
+
         }
 
         else if (clockPaused.load()) {

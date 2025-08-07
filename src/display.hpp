@@ -35,20 +35,21 @@ protected:
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
 
+
 private:
     QString buttonText;
     bool isPressed;
     int buttonSize;
 };
 
-class Display : public QMainWindow
+class DisplayApp : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    Display();
-    Display(int width, int height);
-    ~Display();
+    DisplayApp();
+    DisplayApp(int width, int height);
+    ~DisplayApp();
 
     // Main display function
     void showWindow(const QString& text = "window");
@@ -63,13 +64,13 @@ private:
     void setupUI();
     void centerText();
 
-    QLabel* textLabel;
-    QWidget* centralWidget;
-    QVBoxLayout* layout;
-    CircleButton* circleButton;
+    QLabel* textLabel = nullptr;
+    QWidget* centralWidget = nullptr;
+    QVBoxLayout* layout = nullptr;
+    CircleButton* circleButton = nullptr;
     
-    int windowWidth;
-    int windowHeight;
+    int windowWidth = 400;
+    int windowHeight = 400;
     QString displayText;
     std::function<void()> externalClickHandler;
 };

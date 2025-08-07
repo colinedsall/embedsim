@@ -19,7 +19,7 @@ public:
     
 private:
     std::unique_ptr<QApplication> qtApp;
-    std::unique_ptr<Display> display;
+    std::unique_ptr<DisplayApp> display;
     bool displayInitialized;
 };
 
