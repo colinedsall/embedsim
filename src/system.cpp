@@ -206,10 +206,11 @@ void System::handleUserInput(const std::string& input)
         std::cout << "  pause - Pause the clock (maintains state)\n";
         std::cout << "  resume - Resume the clock\n";
         std::cout << "  flag - Toggle global interrupt flag\n";
-        std::cout << "  button <name> - Simulate button press\n";
+        std::cout << "  press <name> - Simulate button press\n";
         std::cout << "  release <name> - Simulate button release\n";
         std::cout << "  reset <name> - Reset button to IDLE state\n";
         std::cout << "  status - Show system status\n";
+        std::cout << "  exit - Exit the program\n";
         std::cout << "  help - Show this help\n";
     }
     else if (command == "exit") {
@@ -257,6 +258,15 @@ void System::handleCircleButtonClick()
     io.setButtonPressed("guiButton", true);
 }
 
+void System::handleButtonPress()
+{
+    static bool firstPress = false;
+    if (!firstPress) {
+        std::cout << "Button recognized as pressed\n";
+        firstPress = true;
+    }
+}
+
 void System::closeDisplay()
 {
     if (this->display) {
@@ -268,64 +278,56 @@ void System::closeDisplay()
 // Main function
 void System::run()
 {
-    // Setup interrupt handlers
     setupInterruptHandlers();
-
-    // Config before polling loop below
-    // Configure IO module, ensuring it is enabled
+    
+    // Configure IO module
     IO anIO("SystemIO", true);
     anIO.addButton(Button("aButton"));
     this->configureIO(anIO);
-
+    
     // Configure clock module
     clock.createCountUpTimer(1000, true);
     clock.beginTicking(false);
-
-    // Start timer based module
     clock.startCountUpTimer(0);
     
-    // Start CLI thread for real-time input
     startCLIThread();
-
-    std::cout << "System started. Type 'help' for available commands.\n";
-
-    bool firstPress = false;
-    this->display->showWindow("Embedded System");
-    this->qtApp->exec();
-
-    // Polling loop - synchronized with clock
-    while (clock.isRunning() && !shouldStop.load()) {
-        if (clock.getCurrentClockState() == true && !clockPaused.load()) {
-            // Clock-synchronized operations
-            this->io.pollButtonsWithStates(); // Use actual button input states
-
-            // std::cout << "Counter: " << counter << "\n";
-            // std::cout << "Pressed count: " << this->io.pressedCount << std::endl;
-            // std::cout << "Button state: " << this->io.isButtonPressed("aButton") << std::endl;
-            
-            // Check for interrupt flags (atomic operations)
-            if (globalInterruptFlag.load()) {
-                std::cout << "Global flag is ON - performing special action\n";
+    
+    // Create timer for periodic operations instead of polling loop
+    QTimer* systemTimer = new QTimer();
+    QObject::connect(systemTimer, &QTimer::timeout, [this]() {
+        if (clock.isRunning() && !shouldStop.load()) {
+            if (clock.getCurrentClockState() && !clockPaused.load()) {
+                this->io.pollButtonsWithStates();
+                
+                // Handle button press logic
+                if (this->io.isButtonPressed("aButton")) {
+                    handleButtonPress();
+                }
+                
+                // Check interrupt flags
+                if (globalInterruptFlag.load()) {
+                    std::cout << "Global flag is ON - performing special action\n";
+                }
             }
-
+        } else if (shouldStop.load()) {
+            // Stop the Qt application
+            QApplication::quit();
         }
-
-        if (this->io.isButtonPressed("aButton") && firstPress == false) {
-            std::cout << "Button recognized as pressed\n";
-            // this->handleCircleButtonClick();
-            
-            firstPress = true;
-
-        }
-
-        else if (clockPaused.load()) {
-            // Clock is paused, just wait
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-        else {
-            // Optional: Handle low clock state
-        }
-    }
+    });
+    
+    // Start timer with appropriate interval (adjust as needed)
+    systemTimer->start(10); // 10ms interval
+    
+    std::cout << "System started. Type 'help' for available commands.\n";
+    
+    // Show display and connect button handler
+    this->display->showWindow("Embedded System");
+    this->display->connectButtonClick([this]() {
+        this->handleCircleButtonClick();
+    });
+    
+    // Enter Qt event loop - this will now handle everything
+    int result = this->qtApp->exec();
     
     std::cout << "System stopped.\n";
     stopCLIThread();

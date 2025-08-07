@@ -11,6 +11,7 @@
 #include "io.hpp"
 #include "display.hpp"
 #include <QApplication>
+#include <QTimer>
 
 class System {
 public:
@@ -37,6 +38,7 @@ public:
     void showText(const QString& text);
     void closeDisplay();
     void handleCircleButtonClick();
+    void handleButtonPress();
     
     // Global state that can be modified by interrupts
     std::atomic<bool> globalInterruptFlag{false};
@@ -58,6 +60,7 @@ private:
     void cliInputLoop();
     void handleUserInput(const std::string& input);
     void setupInterruptHandlers();
+
 };
 
 #endif
