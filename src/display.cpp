@@ -165,6 +165,10 @@ void DisplayApp::setupUI()
     centerText();
     std::cout << "DEBUG: Window centered" << std::endl;
     
+    // Make window visible by default
+    setVisible(true);
+    std::cout << "DEBUG: Window set visible" << std::endl;
+    
     std::cout << "DEBUG: setupUI completed successfully" << std::endl;
 }
 
@@ -190,19 +194,19 @@ void DisplayApp::showWindow(const QString& text)
         std::cout << "DEBUG: Text label updated" << std::endl;
     }
     
-    // Show the window
-    std::cout << "DEBUG: About to call show()" << std::endl;
-    show();
-    std::cout << "DEBUG: show() completed" << std::endl;
+    // Just update the text, window is already visible
+    std::cout << "DEBUG: Window already visible, just updating text" << std::endl;
     
-    // Bring to front
-    std::cout << "DEBUG: About to call raise()" << std::endl;
-    raise();
-    std::cout << "DEBUG: raise() completed" << std::endl;
-    
-    std::cout << "DEBUG: About to call activateWindow()" << std::endl;
-    activateWindow();
-    std::cout << "DEBUG: activateWindow() completed" << std::endl;
+    // Bring to front if needed
+    if (isVisible()) {
+        std::cout << "DEBUG: About to call raise()" << std::endl;
+        raise();
+        std::cout << "DEBUG: raise() completed" << std::endl;
+        
+        std::cout << "DEBUG: About to call activateWindow()" << std::endl;
+        activateWindow();
+        std::cout << "DEBUG: activateWindow() completed" << std::endl;
+    }
     
     std::cout << "DEBUG: showWindow completed successfully" << std::endl;
 }

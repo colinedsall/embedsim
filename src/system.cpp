@@ -248,6 +248,12 @@ void System::initializeDisplay()
 {
     std::cout << "DEBUG: initializeDisplay started" << std::endl;
     
+    // Ensure QApplication is properly initialized
+    if (!QApplication::instance()) {
+        std::cerr << "ERROR: QApplication not initialized!" << std::endl;
+        return;
+    }
+    
     try {
         std::cout << "DEBUG: About to create DisplayApp" << std::endl;
         this->display = std::make_unique<DisplayApp>(400, 400);
@@ -325,23 +331,6 @@ void System::run()
     startCLIThread();
     std::cout << "DEBUG: CLI thread started" << std::endl;
     
-    // Show display BEFORE creating timer to ensure Qt is ready
-    std::cout << "DEBUG: About to show display" << std::endl;
-    if (this->display) {
-        this->display->showWindow("Embedded System");
-        std::cout << "DEBUG: Display shown successfully" << std::endl;
-    } else {
-        std::cerr << "ERROR: Display is null!" << std::endl;
-        return;
-    }
-    
-    // Connect button handler
-    this->display->connectButtonClick([this]() {
-        std::lock_guard<std::mutex> lock(systemMutex);
-        this->handleCircleButtonClick();
-    });
-    std::cout << "DEBUG: Button click connected" << std::endl;
-    
     // Create timer for periodic operations instead of polling loop
     QTimer* systemTimer = new QTimer();
     std::cout << "DEBUG: QTimer created" << std::endl;
@@ -373,7 +362,28 @@ void System::run()
     systemTimer->start(10); // 10ms interval
     std::cout << "DEBUG: QTimer started" << std::endl;
     
+    // Connect button handler
+    this->display->connectButtonClick([this]() {
+        std::lock_guard<std::mutex> lock(systemMutex);
+        this->handleCircleButtonClick();
+    });
+    std::cout << "DEBUG: Button click connected" << std::endl;
+    
     std::cout << "System started. Type 'help' for available commands.\n";
+    
+    // Use a timer to show the display after the event loop starts
+    QTimer* showTimer = new QTimer();
+    showTimer->setSingleShot(true);
+    QObject::connect(showTimer, &QTimer::timeout, [this]() {
+        std::cout << "DEBUG: About to show display (delayed)" << std::endl;
+        if (this->display) {
+            this->display->showWindow("Embedded System");
+            std::cout << "DEBUG: Display shown successfully" << std::endl;
+        } else {
+            std::cerr << "ERROR: Display is null!" << std::endl;
+        }
+    });
+    showTimer->start(100); // Show after 100ms
     
     // Enter Qt event loop - this will now handle everything
     std::cout << "DEBUG: About to enter Qt event loop" << std::endl;
