@@ -3,7 +3,6 @@
 #include <execinfo.h>
 #include <unistd.h>
 #include "clock.hpp"
-#include "io.hpp"
 #include "system.hpp"
 
 // Global system pointer for cleanup

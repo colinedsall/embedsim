@@ -5,7 +5,8 @@ Timer::Timer() : clockCycles(0), systemClockPeriodInNanoseconds(0)
     cout << "Warning: Default constructor called, timer clock cycles not initialized (0). \n";
 }
 
-Timer::Timer(int milliseconds, int systemClockPeriodInNanoseconds, bool continuousRun) : continuousRun(continuousRun)
+Timer::Timer(int milliseconds, int systemClockPeriodInNanoseconds, bool continuousRun) : 
+    systemClockPeriodInNanoseconds(systemClockPeriodInNanoseconds), continuousRun(continuousRun)
 {
     // Using the system clock period, configure the timer to run
     // for the amount of time configured

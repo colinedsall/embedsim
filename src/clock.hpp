@@ -29,6 +29,7 @@ class Clock
         bool getCurrentClockState() const {return clockOutput.load();}
         long long getClockCycles() const {return clockCycles.load(); }
         bool isRunning() const {return running.load(); }
+        int getSystemClockPeriodInNanoseconds() const {return periodInNanoseconds; }
 
         bool createCountUpTimer(int timeInMilliseconds, bool outputRollovers);
         void startCountUpTimer(int index);

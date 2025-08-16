@@ -14,9 +14,10 @@ endif()
 
 # Add main.cpp file of the project root directory as a source file
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp src/*.hpp)
+file(GLOB_RECURSE RESOURCE_FILES *.qrc)
 
 # Add executable target with source files listed in SOURCE_FILES variable
-add_executable(embedsim ${SOURCE_FILES})
+add_executable(embedsim ${SOURCE_FILES} ${RESOURCE_FILES})
 
 # Link Qt libraries
 if(Qt6_FOUND)

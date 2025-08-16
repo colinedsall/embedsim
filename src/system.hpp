@@ -8,9 +8,12 @@
 #include <functional>
 #include <map>
 #include <mutex>
+#include <vector>
+#include <memory>
 #include "clock.hpp"
 #include "io.hpp"
 #include "display.hpp"
+#include "timer.hpp"
 #include <QApplication>
 #include <QTimer>
 
@@ -40,6 +43,14 @@ public:
     void closeDisplay();
     void handleCircleButtonClick();
     void handleButtonPress();
+    void handleTerminalCommand(const std::string& command);
+    
+    // Timer management methods
+    void addTimer(const std::string& name, int timeMs);
+    void startTimer(const std::string& name);
+    void stopTimer(const std::string& name);
+    void removeTimer(const std::string& name);
+    void updateTimerDisplay();
     
     // Global state that can be modified by interrupts
     std::atomic<bool> globalInterruptFlag{false};
@@ -53,6 +64,16 @@ private:
     std::unique_ptr<DisplayApp> display;
     std::unique_ptr<QApplication> qtApp;
     
+    // Timer management
+    struct ManagedTimer {
+        std::string name;
+        int timeMs;
+        std::shared_ptr<Timer> timer;
+        bool isRunning;
+    };
+    std::vector<ManagedTimer> managedTimers;
+    std::mutex timerMutex;
+    
     // Interrupt system
     std::map<std::string, std::function<void()>> interruptHandlers;
     std::thread cliThread;
@@ -64,7 +85,9 @@ private:
     
     void cliInputLoop();
     void handleUserInput(const std::string& input);
+    void handleUserInputWithDisplay(const std::string& input);
     void setupInterruptHandlers();
+    void setupTimerCallbacks();
 
 };
 

@@ -22,7 +22,7 @@ void SystemWithDisplay::initializeDisplay()
         }
         
         // Create display
-        display = std::make_unique<DisplayApp>(400, 400);
+        display = std::make_unique<DisplayApp>(800, 500);
         displayInitialized = true;
         
         std::cout << "Display initialized.\n";
